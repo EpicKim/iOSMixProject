@@ -22,7 +22,7 @@ typedef NS_ENUM(NSInteger, GSCSourceType) {
 
 void recursiveDirectory(NSString *directory, NSArray<NSString *> *ignoreDirNames, void(^handleMFile)(NSString *mFilePath), void(^handleSwiftFile)(NSString *swiftFilePath));
 void generateSpamCodeFile(NSString *outDirectory, NSString *mFilePath, GSCSourceType type);
-void addSpamCodeFile(NSString *sourceCodeDir);
+void addSpamCodeFile(NSString *sourceCodeDir,NSArray<NSString *> *ignoreDirNames);
 void generateSwiftSpamCodeFile(NSString *outDirectory, NSString *swiftFilePath);
 NSString *randomString(NSInteger length);
 void handleXcassetsFiles(NSString *directory);
@@ -312,7 +312,7 @@ int main(int argc, const char * argv[]) {
         if (outDirString) {
             @autoreleasepool {
                 printf("正在生成垃圾代码\n");
-                addSpamCodeFile(gSourceCodeDir);
+                addSpamCodeFile(gSourceCodeDir, ignoreDirNames);
             }
 //            recursiveDirectory(gSourceCodeDir, ignoreDirNames, ^(NSString *mFilePath) {
 //
@@ -397,7 +397,7 @@ static NSString *const kMClassFileTemplate = @"\
 
 ///添加垃圾代码的策略
 ///为每一个.m文件添加一个方法，
-void addSpamCodeFile(NSString *sourceCodeDir){
+void addSpamCodeFile(NSString *sourceCodeDir,NSArray<NSString *> *ignoreDirNames){
     NSFileManager *fm = [NSFileManager defaultManager];
     NSArray<NSString *> *files = [fm contentsOfDirectoryAtPath:sourceCodeDir error:nil];
     BOOL isDirectory;
@@ -406,8 +406,10 @@ void addSpamCodeFile(NSString *sourceCodeDir){
         NSString *path = [sourceCodeDir stringByAppendingPathComponent:filePath];
         ///如果路径下的是文件夹，继续往下走,知道找到一个文件
         if ([fm fileExistsAtPath:path isDirectory:&isDirectory] && isDirectory) {
-            addSpamCodeFile(path);
-            continue;
+            if (![ignoreDirNames containsObject:filePath]) {
+                addSpamCodeFile(path, ignoreDirNames);
+                continue;
+            }
         }
         NSString *fileName = filePath.lastPathComponent;
         ///mm文件先不管
@@ -459,6 +461,9 @@ void creatApiToFile(NSString *sourceCodeDir,NSString *apiName, NSString *paramNa
                 [arrayOfLocation addObject:number];
                 
             }
+            if (arrayOfLocation.count == 0) {
+                return;
+            }
             NSNumber *number = arrayOfLocation[arrayOfLocation.count-1];
             NSInteger index = number.integerValue;
             [fileContent replaceCharactersInRange:NSMakeRange(index, 4) withString:@""];
@@ -478,6 +483,9 @@ void creatApiToFile(NSString *sourceCodeDir,NSString *apiName, NSString *paramNa
                 d+=s.length;
                 [arrayOfLocation addObject:number];
                 
+            }
+            if (arrayOfLocation.count == 0) {
+                return;
             }
             NSNumber *number = arrayOfLocation[arrayOfLocation.count-1];
             NSInteger index = number.integerValue;
@@ -510,6 +518,9 @@ void creatApiToFile(NSString *sourceCodeDir,NSString *apiName, NSString *paramNa
                 [arrayOfLocation addObject:number];
                 
             }
+            if (arrayOfLocation.count == 0) {
+                return;
+            }
             NSNumber *number = arrayOfLocation[arrayOfLocation.count-1];
             NSInteger index = number.integerValue;
             [mfileContent replaceCharactersInRange:NSMakeRange(index, 4) withString:@""];
@@ -532,6 +543,9 @@ void creatApiToFile(NSString *sourceCodeDir,NSString *apiName, NSString *paramNa
                 d+=s.length;
                 [arrayOfLocation addObject:number];
                 
+            }
+            if (arrayOfLocation.count == 0) {
+                return;
             }
             NSNumber *number = arrayOfLocation[arrayOfLocation.count-1];
             NSInteger index = number.integerValue;
